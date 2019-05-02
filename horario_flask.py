@@ -17,46 +17,52 @@ def bienvenida():
 def horario_lunes(dia,rut):
     time_init = time.time()
     periodos = []
-    # Iteración de períodos en cierto día
-    for i in range(1,12):
-        url = 'https://intranet.ufro.cl/horario/horario_alumno_detalle2.php?matricula={}&periodo={}&dia={}&ano=2019&nro_semest=1&estado=N'.format(rut,i,dia)
-        source = requests.get(url).text
-        detalle = []
-        horario = {
-            "dia": "",
-            "periodo": "",
-            "hora_inicio": "",
-            "hora_termino": "",
-            "tipo_clase": "",
-            "fecha_inicio": "",
-            "fecha_termino": "",
-            "sector": "",
-            "sala": "",
-            "asignatura": "",
-            "docente": ""
-        }
-        
-        soup = BeautifulSoup(source, 'lxml')
 
-        for dato in soup.find_all('td'):
-            detalle.append(dato.text.strip())
-        
-        if len(detalle) == 11:
-            i = 0
-            for x in horario:
-                horario[x] = detalle[i]
-                i+=1
-
-            periodos.append(horario)
+    if 1 <= int(dia) < 7:
+        # Iteración de períodos en cierto día
+        for i in range(1,12):
+            url = 'https://intranet.ufro.cl/horario/horario_alumno_detalle2.php?matricula={}&periodo={}&dia={}&ano=2019&nro_semest=1&estado=N'.format(rut,i,dia)
+            source = requests.get(url).text
+            detalle = []
+            horario = {
+                "dia": "",
+                "periodo": "",
+                "hora_inicio": "",
+                "hora_termino": "",
+                "tipo_clase": "",
+                "fecha_inicio": "",
+                "fecha_termino": "",
+                "sector": "",
+                "sala": "",
+                "asignatura": "",
+                "docente": ""
+            }
             
-        # En caso de un período vacío
-        else:
-            periodo_vacio = {418 : "periodo vacío"} 
-            # periodos.append(periodo_vacio)
+            soup = BeautifulSoup(source, 'lxml')
 
-    # Cálculo del runtime y agrega a periodos
-    time_finish = time.time()
-    periodos.append({"ejecutado en": "{} segundos".format(round(time_finish-time_init,3)) })
+            for dato in soup.find_all('td'):
+                detalle.append(dato.text.strip())
+            
+            if len(detalle) == 11:
+                i = 0
+                for x in horario:
+                    horario[x] = detalle[i]
+                    i+=1
+
+                periodos.append(horario)
+                
+            # En caso de un período vacío
+            else:
+                periodo_vacio = {418 : "periodo vacío"} 
+                # periodos.append(periodo_vacio)
+        
+        # Cálculo del runtime y agrega a periodos
+        time_finish = time.time()
+        periodos.append({"ejecutado en": "{} segundos".format(round(time_finish-time_init,3)) })
+
+    else: periodos.append({"Error 202": "Ingresa día válido (1 - 6, de lunes a sábado, respectivamente)"})
+
+    
 
     # Encoding periodos a json
     json_horario = json.dumps(periodos, ensure_ascii=False, indent=4)
